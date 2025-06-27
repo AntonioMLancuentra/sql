@@ -14,10 +14,11 @@
     * Open a private window in your browser. Copy and paste the link to your pull request into the address bar. Make sure you can see your pull request properly. This helps the technical facilitator and learning support staff review your submission easily.
 
 Checklist:
-- [ ] Create a branch called `assignment-two`.
-- [ ] Ensure that the repository is public.
-- [ ] Review [the PR description guidelines](https://github.com/UofT-DSI/onboarding/blob/main/onboarding_documents/submissions.md#guidelines-for-pull-request-descriptions) and adhere to them.
-- [ ] Verify that the link is accessible in a private browser window.
+- [V] Create a branch called `assignment-two`.
+- [V] Ensure that the repository is public.
+- [V] Review [the PR description guidelines](https://github.com/UofT-DSI/onboarding/blob/main/onboarding_documents/submissions.md#guidelines-for-pull-request-descriptions) and adhere to them.
+- [V] Verify that the link is accessible in a private browser window.
+- [V] Participant Name: Antonio M. Lancuentra
 
 If you encounter any difficulties or have questions, please don't hesitate to reach out to our team via our Slack at `#cohort-6-help`. Our Technical Facilitators and Learning Support staff are here to help you navigate any challenges.
 
@@ -54,7 +55,46 @@ The store wants to keep customer addresses. Propose two architectures for the CU
 **HINT:** search type 1 vs type 2 slowly changing dimensions. 
 
 ```
-Your answer...
+To manage the data in a hypothetical CUSTOMER_ADDRESS table (my small bookstore ERDs from prompt1 and prompt2 does not have such table), I would propose the architecture Slowly Changing Dimension (SCD) type 2 to retain changes and architecture Slowly Changing Dimension (SCD) type 1 to overwrite existing values with new values and do not retain changes. Let’s briefly explain both proposals.
+
+Proposal 1: SCD type 1 architecture for a CUSTOMER_ADDRESS table (overwrites changes)
+The structure of the table would be as follows:
+CREATE TABLE CUSTOMER_ADDRESS (
+    customer_id     INT NOT NULL,                  		-- Identifier for the customer
+    street_address  VARCHAR(80) NOT NULL,       	    -- First line of the address
+    city            VARCHAR(40) NOT NULL,               -- City
+    prov_terr_state VARCHAR(40) NOT NULL,               -- province or territory or state
+    postal_code     VARCHAR(10) NOT NULL,          		-- Postal or ZIP code
+    country         VARCHAR(40) NOT NULL,             	-- Country
+    CONSTRAINT PK_cust_ad PRIMARY KEY(customer_id)
+);
+How it works:
+1.	new customer address: when a customer is added, a row is inserted with their address details.
+2.	address update: when a customer's address changes:
+- the existing record is updated with the new address information.
+- no additional rows are created, and the old address is replaced.
+
+Proposal 2: SCD type 2 architecture for a CUSTOMER_ADDRESS table (retains changes)
+The structure of the table would be as follows:
+CREATE TABLE CUSTOMER_ADDRESS (
+    customer_id     INT NOT NULL,                  		            -- Identifier for the customer
+    street_address  VARCHAR(80) NOT NULL,       	                -- First line of the address
+    city            VARCHAR(40) NOT NULL,                           -- City
+    prov_terr_state VARCHAR(40) NOT NULL,                           -- province or territory or state
+    postal_code     VARCHAR(10) NOT NULL,          		            -- Postal or ZIP code
+    country         VARCHAR(40) NOT NULL,             	            -- Country
+    start_date      DATE NOT NULL,                  	            -- Start date of the record
+    end_date        DATE,                             	            -- End date of the record (null for the current record)
+    is_current      CHAR(1) NOT NULL DEFAULT 'Y',  	                -- Indicates whether the record is the current one ('Y' or 'N')
+    CONSTRAINT PK_cust_ad PRIMARY KEY (customer_id, start_date)     -- Composite primary key to uniquely identify each version
+);
+How it works:
+1.	new customer address: when a customer is added, a row is inserted with their address details and the start_date. The end_date is left NULL, and is_current is set to 'Y'.
+2.	address update: when a customer's address changes, the following steps occur:
+- the existing record’s end_date is updated to the current date.
+- the is_current flag of the existing record is set to 'N'.
+- a new row is inserted with the updated address, a new start_date, and is_current set to 'Y'.
+
 ```
 
 ***

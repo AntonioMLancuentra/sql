@@ -13,7 +13,7 @@ FROM product;
 
 SELECT *
 ,coalesce(product_size, 'Unknown') -- we aren't handling the blank
-nullif
+--nullif
 ,NULLIF(product_size,'') -- finding values in product_size that are "blanks" and setting it equal to NULL
 ,coalesce(NULLIF(product_size,''), 'unknown')
 
